@@ -1,31 +1,43 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { toggleTodo, deleteTodo } from '../actions';
+import * as actions from '../actions';
 import { withRouter } from 'react-router';
 import { getVisibleTodos } from '../reducers';
 import TodoList from './TodoList';
-import { fetchTodos } from '../api';
 
 class VisibleTodoList extends Component {
   componentDidMount() {
-    fetchTodos(this.props.filter).then(todos =>
-      console.log(this.props.filter, todos) // eslint-disable-line no-console
-    );
+    this.fetchData();
   }
+
   componentDidUpdate(prevProps) {
     if (this.props.filter !== prevProps.filter) {
-      fetchTodos(this.props.filter).then(todos =>
-        console.log(this.props.filter, todos) // eslint-disable-line no-console
-      );
+      this.fetchData();
     }
   }
+
+  fetchData() {
+    const { filter, fetchTodos } = this.props;
+    fetchTodos(filter);
+  }
+
   render() {
-    return <TodoList {...this.props} />;
+    const { toggleTodo, deleteTodo, ...rest } = this.props;
+    return (
+      <TodoList
+        {...rest}
+        onTodoClick={toggleTodo}
+        onTodoDelete={deleteTodo}
+      />
+    );
   }
 }
 
 VisibleTodoList.propTypes = {
   filter: PropTypes.string.isRequired,
+  toggleTodo: PropTypes.func.isRequired,
+  deleteTodo: PropTypes.func.isRequired,
+  fetchTodos: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state, { match }) => {
@@ -38,10 +50,7 @@ const mapStateToProps = (state, { match }) => {
 
 VisibleTodoList = withRouter(connect(
   mapStateToProps,
-  {
-    onTodoClick: toggleTodo,
-    onTodoDelete: deleteTodo,
-  }
+  actions
 )(VisibleTodoList));
 
 export default VisibleTodoList;
